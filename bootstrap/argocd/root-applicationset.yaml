@@ -1,0 +1,56 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: root-app
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: root-app
+    app.kubernetes.io/part-of: gke-bootstrap
+spec:
+  # Generate applications for each registered cluster
+  # The in-cluster (local) cluster is automatically registered by ArgoCD
+  generators:
+    - clusters:
+        selector:
+          matchLabels:
+            # Match the in-cluster (https://kubernetes.default.svc)
+            argocd.argoproj.io/secret-type: cluster
+  template:
+    metadata:
+      # Use cluster name in app name for uniqueness
+      name: 'root-app-{{name}}'
+      labels:
+        app.kubernetes.io/name: root-app
+        app.kubernetes.io/instance: '{{name}}'
+        app.kubernetes.io/managed-by: argocd
+    spec:
+      project: default
+      source:
+        # Repository URL from cluster annotations (set by Terraform via ExternalSecret)
+        repoURL: '{{metadata.annotations.git_repo}}'
+        targetRevision: '{{metadata.annotations.git_revision}}'
+        path: helm/charts/root-app
+        helm:
+          # Pass cluster metadata as Helm values
+          # These values allow the root-app chart to configure child applications
+          valuesObject:
+            cluster_name: '{{metadata.annotations.cluster_name}}'
+            cluster_type: '{{metadata.annotations.cluster_type}}'
+            project_id: '{{metadata.annotations.project_id}}'
+            region: '{{metadata.annotations.region}}'
+            environment: '{{metadata.annotations.environment}}'
+            sector: '{{metadata.annotations.sector}}'
+            infra_id: '{{metadata.annotations.infra_id}}'
+            git_repo: '{{metadata.annotations.git_repo}}'
+            git_revision: '{{metadata.annotations.git_revision}}'
+            git_credentials_secret_name: '{{metadata.annotations.git_credentials_secret_name}}'
+      destination:
+        server: '{{server}}'
+        namespace: argocd
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          - ServerSideApply=true
