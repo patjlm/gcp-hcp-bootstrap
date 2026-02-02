@@ -7,45 +7,37 @@ metadata:
     app.kubernetes.io/name: root-app
     app.kubernetes.io/part-of: gke-bootstrap
 spec:
-  # Generate applications for each registered cluster
-  # The in-cluster (local) cluster is automatically registered by ArgoCD
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
   generators:
     - clusters:
         selector:
           matchLabels:
-            # Match the in-cluster (https://kubernetes.default.svc)
             argocd.argoproj.io/secret-type: cluster
   template:
     metadata:
-      # Use cluster name in app name for uniqueness
-      name: 'root-app-{{name}}'
+      name: 'root-app-{{ .name }}'
       labels:
         app.kubernetes.io/name: root-app
-        app.kubernetes.io/instance: '{{name}}'
+        app.kubernetes.io/instance: '{{ .name }}'
         app.kubernetes.io/managed-by: argocd
     spec:
       project: default
       source:
-        # Repository URL from cluster annotations (set by Terraform via ExternalSecret)
-        repoURL: '{{metadata.annotations.git_repo}}'
-        targetRevision: '{{metadata.annotations.git_revision}}'
-        path: helm/charts/root-app
+        repoURL: '{{ index .data "meta_git_repo" }}'
+        targetRevision: '{{ index .data "meta_git_revision" }}'
+        # Path computed by Terraform and stored in cluster secret
+        path: '{{ index .data "meta_argocd_path" }}'
         helm:
-          # Pass cluster metadata as Helm values
-          # These values allow the root-app chart to configure child applications
-          valuesObject:
-            cluster_name: '{{metadata.annotations.cluster_name}}'
-            cluster_type: '{{metadata.annotations.cluster_type}}'
-            project_id: '{{metadata.annotations.project_id}}'
-            region: '{{metadata.annotations.region}}'
-            environment: '{{metadata.annotations.environment}}'
-            sector: '{{metadata.annotations.sector}}'
-            infra_id: '{{metadata.annotations.infra_id}}'
-            git_repo: '{{metadata.annotations.git_repo}}'
-            git_revision: '{{metadata.annotations.git_revision}}'
-            git_credentials_secret_name: '{{metadata.annotations.git_credentials_secret_name}}'
+          # Pass all meta_ prefixed fields as Helm values (prefix stripped)
+          values: |
+            {{- range $key, $value := .data }}
+            {{- if hasPrefix "meta_" $key }}
+            {{ trimPrefix "meta_" $key }}: {{ $value | quote }}
+            {{- end }}
+            {{- end }}
       destination:
-        server: '{{server}}'
+        server: '{{ .server }}'
         namespace: argocd
       syncPolicy:
         automated:
