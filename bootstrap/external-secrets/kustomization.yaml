@@ -14,4 +14,4 @@ resources:
 images:
   - name: ghcr.io/external-secrets/external-secrets
     newName: quay.io/patmarti/external-secrets
-    newTag: projectid-fallback
+    digest: sha256:19288a5c140093ba864f30defbd0d80bfd5e2a8ae4d435ba7dbc48b54b974b73
