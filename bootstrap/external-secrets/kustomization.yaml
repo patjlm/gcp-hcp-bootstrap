@@ -5,30 +5,6 @@ resources:
   - namespace.yaml
   - controller.yaml
 
-# Increase replicas for webhook components to meet GKE minimum availability
-replicas:
-  - name: external-secrets-cert-controller
-    count: 2
-  - name: external-secrets-webhook
-    count: 2
-
-# Patch deployments to use correct namespace in command-line args
-# The upstream YAML defaults to 'default' namespace
-patches:
-  - target:
-      kind: Deployment
-      name: external-secrets-cert-controller
-    patch: |-
-      - op: replace
-        path: /spec/template/spec/containers/0/args/3
-        value: --service-namespace=external-secrets-system
-      - op: replace
-        path: /spec/template/spec/containers/0/args/5
-        value: --secret-namespace=external-secrets-system
-  - target:
-      kind: Deployment
-      name: external-secrets-webhook
-    patch: |-
-      - op: replace
-        path: /spec/template/spec/containers/0/args/2
-        value: --dns-name=external-secrets-webhook.external-secrets-system.svc
+# controller.yaml is generated from the external-secrets Helm chart.
+# To update: ./update.sh <VERSION>
+# To check versions: ./update.sh
