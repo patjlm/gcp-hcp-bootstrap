@@ -11,3 +11,13 @@ replicas:
     count: 2
   - name: external-secrets-webhook
     count: 2
+
+# Tell Config Sync to not manage the webhook secret - cert-controller populates it with TLS certs
+patches:
+  - target:
+      kind: Secret
+      name: external-secrets-webhook
+    patch: |
+      - op: add
+        path: /metadata/annotations/configsync.gke.io~1managed
+        value: disabled
