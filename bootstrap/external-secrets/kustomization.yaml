@@ -12,8 +12,8 @@ replicas:
   - name: external-secrets-webhook
     count: 2
 
-# Patch cert-controller to use correct namespace for service and secret
-# The upstream YAML defaults to 'default' namespace in command-line args
+# Patch deployments to use correct namespace in command-line args
+# The upstream YAML defaults to 'default' namespace
 patches:
   - target:
       kind: Deployment
@@ -25,3 +25,10 @@ patches:
       - op: replace
         path: /spec/template/spec/containers/0/args/5
         value: --secret-namespace=external-secrets-system
+  - target:
+      kind: Deployment
+      name: external-secrets-webhook
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/args/2
+        value: --dns-name=external-secrets-webhook.external-secrets-system.svc
