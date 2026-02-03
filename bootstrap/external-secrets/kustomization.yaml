@@ -1,7 +1,13 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-# External-secrets resources already have namespace set from helm template
 resources:
   - namespace.yaml
   - controller.yaml
+
+# Increase replicas for webhook components to meet GKE minimum availability
+replicas:
+  - name: external-secrets-cert-controller
+    count: 2
+  - name: external-secrets-webhook
+    count: 2
