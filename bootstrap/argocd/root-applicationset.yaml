@@ -24,14 +24,14 @@ spec:
     spec:
       project: default
       source:
-        repoURL: '{{ index .data "meta_git_repo" }}'
-        targetRevision: '{{ index .data "meta_git_revision" }}'
-        # Path computed by Terraform and stored in cluster secret
-        path: '{{ index .data "meta_argocd_path" }}'
+        repoURL: '{{ index .metadata.annotations "meta_git_repo" }}'
+        targetRevision: '{{ index .metadata.annotations "meta_git_revision" }}'
+        # Path computed by Terraform and stored in cluster secret annotations
+        path: '{{ index .metadata.annotations "meta_argocd_path" }}'
         helm:
-          # Pass all meta_ prefixed fields as Helm values (prefix stripped)
+          # Pass all meta_ prefixed annotations as Helm values (prefix stripped)
           values: |
-            {{- range $key, $value := .data }}
+            {{- range $key, $value := .metadata.annotations }}
             {{- if hasPrefix "meta_" $key }}
             {{ trimPrefix "meta_" $key }}: {{ $value | quote }}
             {{- end }}
