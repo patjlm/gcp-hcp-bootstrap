@@ -10,6 +10,7 @@ resources:
   - install.yaml
   - service-account.yaml
   - secret-store.yaml
+  - cluster-metadata-annotations-template.yaml
   - external-secret-argocd-cluster.yaml
   - external-secret-git-credentials.yaml
   - root-applicationset.yaml
