@@ -14,3 +14,35 @@ resources:
   - external-secret-argocd-cluster.yaml
   - external-secret-git-credentials.yaml
   - root-applicationset.yaml
+
+# Remove configmaps that will be managed by argocd-config Application
+# ArgoCD functions with defaults when these don't exist, and argocd-config
+# will create them with full configuration (IAP, RBAC, resource exclusions)
+patches:
+  - patch: |-
+      $patch: delete
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: argocd-cm
+    target:
+      kind: ConfigMap
+      name: argocd-cm
+  - patch: |-
+      $patch: delete
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: argocd-cmd-params-cm
+    target:
+      kind: ConfigMap
+      name: argocd-cmd-params-cm
+  - patch: |-
+      $patch: delete
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: argocd-rbac-cm
+    target:
+      kind: ConfigMap
+      name: argocd-rbac-cm
