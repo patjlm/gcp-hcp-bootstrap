@@ -15,34 +15,37 @@ resources:
   - external-secret-git-credentials.yaml
   - root-applicationset.yaml
 
-# Remove configmaps that will be managed by argocd-config Application
-# ArgoCD functions with defaults when these don't exist, and argocd-config
-# will create them with full configuration (IAP, RBAC, resource exclusions)
+# Add mutation: ignore annotation to configmaps that will be managed by argocd-config
+# ConfigSync creates them initially, but allows ArgoCD to freely update them
+# This prevents resource fights between ConfigSync and ArgoCD
 patches:
   - patch: |-
-      $patch: delete
       apiVersion: v1
       kind: ConfigMap
       metadata:
         name: argocd-cm
+        annotations:
+          client.lifecycle.config.k8s.io/mutation: ignore
     target:
       kind: ConfigMap
       name: argocd-cm
   - patch: |-
-      $patch: delete
       apiVersion: v1
       kind: ConfigMap
       metadata:
         name: argocd-cmd-params-cm
+        annotations:
+          client.lifecycle.config.k8s.io/mutation: ignore
     target:
       kind: ConfigMap
       name: argocd-cmd-params-cm
   - patch: |-
-      $patch: delete
       apiVersion: v1
       kind: ConfigMap
       metadata:
         name: argocd-rbac-cm
+        annotations:
+          client.lifecycle.config.k8s.io/mutation: ignore
     target:
       kind: ConfigMap
       name: argocd-rbac-cm
