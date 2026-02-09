@@ -60,3 +60,10 @@ patches:
     target:
       kind: Service
       name: argocd-server
+  # Seed dex.config at bootstrap so argocd-server initializes its OIDC
+  # http.Client with the correct TLS settings before argocd-config delivers
+  # the full argocd-cm.  See https://github.com/argoproj/argo-cd/issues/26345
+  - path: argocd-cm-patch.yaml
+    target:
+      kind: ConfigMap
+      name: argocd-cm
